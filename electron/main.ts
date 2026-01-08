@@ -22,6 +22,8 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+let mainWindow: BrowserWindow | null = null;
+
 const createWindow = () => {
   const preloadPath = app.isPackaged
     ? path.join(__dirname, 'preload.js')
@@ -37,12 +39,20 @@ const createWindow = () => {
     }
   });
 
+  mainWindow = win;
+
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL);
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
     win.loadFile(path.join(__dirname, '../index.html'));
   }
+
+  win.on('closed', () => {
+    if (mainWindow === win) {
+      mainWindow = null;
+    }
+  });
 };
 
 app.whenReady().then(async () => {
