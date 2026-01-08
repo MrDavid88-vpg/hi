@@ -69,8 +69,10 @@ app.on('window-all-closed', () => {
 });
 
 ipcMain.handle('pick-directory', async () => {
-  const browserWindow = mainWindow ?? BrowserWindow.getFocusedWindow() ?? undefined;
-  const result = await dialog.showOpenDialog(browserWindow, { properties: ['openDirectory'] });
+  const browserWindow = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+  const result = await dialog.showOpenDialog(browserWindow ?? undefined, {
+    properties: ['openDirectory', 'createDirectory']
+  });
   if (result.canceled || result.filePaths.length === 0) return null;
   return result.filePaths[0];
 });
