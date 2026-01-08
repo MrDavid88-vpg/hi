@@ -28,7 +28,7 @@ const createWindow = () => {
   const preloadPath = app.isPackaged
     ? path.join(__dirname, 'preload.js')
     : path.join(app.getAppPath(), 'dist/electron/preload.js');
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     backgroundColor: '#0f172a',
@@ -39,20 +39,12 @@ const createWindow = () => {
     }
   });
 
-  mainWindow = win;
-
   if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL);
-    win.webContents.openDevTools({ mode: 'detach' });
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
-    win.loadFile(path.join(__dirname, '../index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../index.html'));
   }
-
-  win.on('closed', () => {
-    if (mainWindow === win) {
-      mainWindow = null;
-    }
-  });
 };
 
 app.whenReady().then(async () => {
@@ -69,10 +61,8 @@ app.on('window-all-closed', () => {
 });
 
 ipcMain.handle('pick-directory', async () => {
-  const browserWindow = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
-  const result = await dialog.showOpenDialog(browserWindow ?? undefined, {
-    properties: ['openDirectory', 'createDirectory']
-  });
+  const window = mainWindow ?? BrowserWindow.getFocusedWindow();
+  const result = await dialog.showOpenDialog(window ?? undefined, { properties: ['openDirectory'] });
   if (result.canceled || result.filePaths.length === 0) return null;
   return result.filePaths[0];
 });
